@@ -42,17 +42,19 @@ automatically.
 ## Usage
 
 ```sh
-$ yoinks https://youtu.be/dQw4w9WgXcQ    # straight to the format picker
-$ yoinks                                 # prompts for a url
+$ yoinks                                 # opens the ui: paste a url, pick a format
+$ yoinks https://youtu.be/dQw4w9WgXcQ    # no ui: downloads the best quality
 $ yoinks --theme light                   # force the light palette
 ```
 
 ### No-UI mode (yoinks+)
 
-Pass `-f` or `-a` and yoinks+ skips the UI entirely and just downloads —
-handy for scripts, or when you already know what you want:
+Give yoinks+ a url (or a file of them with `-a`) and it skips the UI
+entirely and just downloads — best quality unless you pick a format with
+`-f`. Run bare `yoinks` to get the UI and the format picker:
 
 ```sh
+$ yoinks https://youtu.be/dQw4w9WgXcQ                # best quality
 $ yoinks -f 720p https://youtu.be/dQw4w9WgXcQ        # pick the format up front
 $ yoinks -f mp3 https://youtu.be/a https://youtu.be/b # several urls at once
 $ yoinks -a urls.txt                                 # every url in a file
@@ -117,7 +119,7 @@ To try it as a global command without publishing: `npm link`, then run
 
 ## Roadmap
 
-- [x] Skip the picker (scriptable mode) — `-f best` / `-f mp3` / `-f 720p` (yoinks+)
+- [x] Skip the picker (scriptable mode) — `yoinks <url>`, `-f mp3` / `-f 720p` (yoinks+)
 - [x] Batch downloads from a file — `-a urls.txt` (yoinks+)
 - [ ] `-o <dir>` to choose the output folder
 - [ ] Playlist / thread-with-multiple-videos support

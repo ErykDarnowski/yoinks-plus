@@ -3,15 +3,13 @@ import {isThemeMode, type ThemeMode} from '../theme.js'
 export type CliArgs = {
   help: boolean
   version: boolean
-  /** Single url for the interactive UI. */
-  initialUrl?: string
-  /** Every positional url — used by headless mode, which accepts several. */
+  /** Every positional url — any url means download straight away, no ui. */
   urls: string[]
   /** -a / --batch-file: path to a file of urls (one per line), or "-" for stdin. */
   batchFile?: string
-  /** -f / --format: format to download without showing the picker. */
+  /** -f / --format: format to download (default: best). */
   format?: string
-  /** True when -a or -f was given: skip the UI and download straight away. */
+  /** True when a url or -a was given: skip the UI and download straight away. */
   headless: boolean
   themeMode?: ThemeMode
   error?: string
@@ -74,16 +72,12 @@ export function parseArgs(args: string[]): CliArgs {
     }
   }
 
-  result.headless = result.batchFile !== undefined || result.format !== undefined
-  if (result.headless) {
-    if (positional.length === 0 && result.batchFile === undefined) {
-      return {...result, error: '--format needs a url (or a --batch-file) to download'}
-    }
-  } else if (positional.length > 1) {
-    return {...result, error: 'expected a single url (use --format or --batch-file to download several)'}
+  // any url or batch file means "just download it"; a bare `yoinks` opens the ui
+  result.headless = positional.length > 0 || result.batchFile !== undefined
+  if (!result.headless && result.format !== undefined) {
+    return {...result, error: '--format needs a url (or a --batch-file) to download'}
   }
 
   result.urls = positional
-  result.initialUrl = positional[0]
   return result
 }

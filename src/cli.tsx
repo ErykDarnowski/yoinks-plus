@@ -19,17 +19,16 @@ const HELP = `
   yoinks+ — yoink any video. paste. yoink. done.
 
   Usage
-    $ yoinks [url]                       open the ui (format picker)
-    $ yoinks -f <format> <url...>        download straight away, no ui
-    $ yoinks -a <file> [-f <format>]     download every url in a file, no ui
+    $ yoinks                             open the ui (paste a url, pick a format)
+    $ yoinks <url...> [-f <format>]      download straight away, best quality
+    $ yoinks -a <file> [-f <format>]     download every url in a file
 
   Examples
     $ yoinks https://youtu.be/dQw4w9WgXcQ
     $ yoinks -f 720p https://youtu.be/dQw4w9WgXcQ
     $ yoinks -f mp3 https://youtu.be/a https://youtu.be/b
     $ yoinks -a urls.txt
-    $ cat urls.txt | yoinks -a - -f best
-    $ yoinks                 (prompts for a url)
+    $ cat urls.txt | yoinks -a -
 
   Options
     -f, --format <fmt>    best (default), 720p / 1080p / …, mp3 / audio,
@@ -61,7 +60,7 @@ if (args.version) {
   process.exit(0)
 }
 
-// -f / -a: skip the ui entirely and just download
+// a url or -a: skip the ui entirely and just download (best quality unless -f)
 if (args.headless) {
   let urls = args.urls
   if (args.batchFile !== undefined) {
@@ -76,14 +75,13 @@ if (args.headless) {
   process.exit(code)
 }
 
-const initialUrl = args.initialUrl
 const initialThemeMode = args.themeMode ?? 'auto'
 
 const isTTY = Boolean(process.stdout.isTTY)
 
-// no url given — offer the clipboard url (⇥ to paste) when it already holds one
+// offer the clipboard url (⇥ to paste) when it already holds one
 let clipboardUrl: string | undefined
-if (!initialUrl && isTTY) {
+if (isTTY) {
   const clipped = readClipboard().trim()
   // reject multi-line clipboard content — new URL() silently strips newlines
   if (clipped && !/\s/.test(clipped) && isProbablyUrl(clipped)) clipboardUrl = clipped
@@ -110,7 +108,6 @@ if (isTTY) {
 let outcome: Outcome = {}
 const {waitUntilExit} = render(
   <App
-    initialUrl={initialUrl}
     clipboardUrl={clipboardUrl}
     initialThemeMode={initialThemeMode}
     onOutcome={result => (outcome = result)}

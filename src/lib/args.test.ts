@@ -9,10 +9,9 @@ test('parses a url and a spaced theme option without confusing the value for the
   assert.deepEqual(parseArgs(['--theme', 'light', 'https://example.com/video']), {
     help: false,
     version: false,
-    headless: false,
+    headless: true,
     themeMode: 'light',
     urls: ['https://example.com/video'],
-    initialUrl: 'https://example.com/video',
   })
 })
 
@@ -20,10 +19,9 @@ test('parses an equals-style theme option after the url', () => {
   assert.deepEqual(parseArgs(['https://example.com/video', '--theme=dark']), {
     help: false,
     version: false,
-    headless: false,
+    headless: true,
     themeMode: 'dark',
     urls: ['https://example.com/video'],
-    initialUrl: 'https://example.com/video',
   })
 })
 
@@ -31,10 +29,9 @@ test('rejects missing, invalid, and unknown options', () => {
   assert.match(parseArgs(['--theme']).error ?? '', /needs a value/)
   assert.match(parseArgs(['--theme', 'sepia']).error ?? '', /unknown theme/)
   assert.match(parseArgs(['--wat']).error ?? '', /unknown option/)
-  assert.match(parseArgs(['one', 'two']).error ?? '', /single url/)
 })
 
-test('--format and --batch-file switch to headless mode and allow several urls', () => {
+test('a url or --batch-file means headless; bare yoinks opens the ui', () => {
   const formatted = parseArgs(['-f', '720p', 'https://a.com/1', 'https://a.com/2'])
   assert.equal(formatted.headless, true)
   assert.equal(formatted.format, '720p')
@@ -47,14 +44,18 @@ test('--format and --batch-file switch to headless mode and allow several urls',
   assert.deepEqual(batch.urls, [])
 
   assert.equal(parseArgs(['-a', '-']).batchFile, '-')
-  assert.equal(parseArgs(['https://a.com/1']).headless, false)
+  assert.equal(parseArgs(['https://a.com/1']).headless, true)
+  assert.equal(parseArgs(['https://a.com/1']).format, undefined)
+  assert.equal(parseArgs([]).headless, false)
+  assert.equal(parseArgs(['--theme', 'dark']).headless, false)
+  assert.deepEqual(parseArgs(['one', 'two']).urls, ['one', 'two'])
   assert.match(parseArgs(['-f', 'best']).error ?? '', /needs a url/)
   assert.match(parseArgs(['-a']).error ?? '', /needs a file path/)
   assert.match(parseArgs(['--format']).error ?? '', /needs a value/)
 })
 
 test('batch files follow yt-dlp rules for comments and blank lines', () => {
-  const text = '﻿https://a.com/1\r\n\n# comment\n; also\n] too\n  https://a.com/2  # trailing\nhttps://a.com/3#frag\n'
+  const text = '\uFEFFhttps://a.com/1\r\n\n# comment\n; also\n] too\n  https://a.com/2  # trailing\nhttps://a.com/3#frag\n'
   assert.deepEqual(parseBatchFile(text), ['https://a.com/1', 'https://a.com/2', 'https://a.com/3#frag'])
 })
 
