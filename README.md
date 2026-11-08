@@ -1,4 +1,10 @@
-# yoinks
+# yoinks+
+
+> **yoinks+ is a fork of [yoinks](https://github.com/pablostanley/yoinks)**
+> that brings over some of the features from
+> [yt-dlp](https://github.com/yt-dlp/yt-dlp) that the original keeps
+> hidden behind its UI — downloading from a batch file (`-a`), choosing
+> the format up front (`-f`), and a no-UI mode that just downloads.
 
 <picture>
   <source media="(prefers-color-scheme: dark)" srcset="assets/logo-dark.svg">
@@ -15,6 +21,10 @@ no sketchy redirects.
 <img src="assets/home.png" alt="yoinks home screen — paste a link and hit yoink" width="100%">
 
 ## Install
+
+yoinks+ isn't on npm — build it from source and link it (see
+[Development](#development)), which installs it as the `yoinks` command.
+The commands below install the original yoinks, without the + features:
 
 ```sh
 npm install -g yoinks
@@ -36,6 +46,36 @@ $ yoinks https://youtu.be/dQw4w9WgXcQ    # straight to the format picker
 $ yoinks                                 # prompts for a url
 $ yoinks --theme light                   # force the light palette
 ```
+
+### No-UI mode (yoinks+)
+
+Pass `-f` or `-a` and yoinks+ skips the UI entirely and just downloads —
+handy for scripts, or when you already know what you want:
+
+```sh
+$ yoinks -f 720p https://youtu.be/dQw4w9WgXcQ        # pick the format up front
+$ yoinks -f mp3 https://youtu.be/a https://youtu.be/b # several urls at once
+$ yoinks -a urls.txt                                 # every url in a file
+$ yoinks -a urls.txt -f 1080p                        # …at a given format
+$ cat urls.txt | yoinks -a -                         # urls from stdin
+```
+
+`-f, --format` accepts:
+
+| value            | downloads                                              |
+| ---------------- | ------------------------------------------------------ |
+| `best` (default) | best video + audio, merged to mp4                      |
+| `720p`, `1080p`… | that resolution (or the closest below it), mp4         |
+| `mp3` / `audio`  | audio only, converted to mp3                           |
+| anything else    | passed straight to yt-dlp's `-f` — e.g. `"bv*+ba"`, `140`, `"bv*[height<=480]+ba/b"` |
+
+`-a, --batch-file` reads one url per line, following yt-dlp's rules: blank
+lines and lines starting with `#`, `;` or `]` are ignored, and ` # …` after
+a url is a comment. Use `-` to read from stdin.
+
+Progress is shown on stderr; each finished file is printed to stdout as
+`✓ yoinked → <path>`. If any url fails the rest still download, and the
+exit code is 1.
 
 yoinks takes over the terminal (full-screen, centered — and restores your
 scrollback on exit). Pick a format with ↑/↓ (or j/k, or number keys) and
@@ -77,7 +117,8 @@ To try it as a global command without publishing: `npm link`, then run
 
 ## Roadmap
 
-- [ ] `--best` / `--mp3` flags to skip the picker (scriptable mode)
+- [x] Skip the picker (scriptable mode) — `-f best` / `-f mp3` / `-f 720p` (yoinks+)
+- [x] Batch downloads from a file — `-a urls.txt` (yoinks+)
 - [ ] `-o <dir>` to choose the output folder
 - [ ] Playlist / thread-with-multiple-videos support
 - [ ] Clipboard detection: launch bare and auto-suggest the url you copied

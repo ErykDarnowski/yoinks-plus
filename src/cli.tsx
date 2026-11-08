@@ -6,26 +6,39 @@ import {captureFrames} from './lib/click-map.js'
 import {parseArgs} from './lib/args.js'
 import {readClipboard} from './lib/clipboard.js'
 import {isProbablyUrl} from './lib/platforms.js'
+import {readBatchFile} from './lib/batch.js'
+import {runHeadless} from './lib/headless.js'
+import os from 'node:os'
+import path from 'node:path'
 
 // read at runtime from the shipped package.json so npm version bumps
 // can't drift from a hardcoded constant
 const VERSION: string = createRequire(import.meta.url)('../package.json').version
 
 const HELP = `
-  yoinks — yoink any video. paste. yoink. done.
+  yoinks+ — yoink any video. paste. yoink. done.
 
   Usage
-    $ yoinks [url]
+    $ yoinks [url]                       open the ui (format picker)
+    $ yoinks -f <format> <url...>        download straight away, no ui
+    $ yoinks -a <file> [-f <format>]     download every url in a file, no ui
 
   Examples
     $ yoinks https://youtu.be/dQw4w9WgXcQ
-    $ yoinks https://x.com/user/status/123456
+    $ yoinks -f 720p https://youtu.be/dQw4w9WgXcQ
+    $ yoinks -f mp3 https://youtu.be/a https://youtu.be/b
+    $ yoinks -a urls.txt
+    $ cat urls.txt | yoinks -a - -f best
     $ yoinks                 (prompts for a url)
 
   Options
-    --theme <mode>  use auto, light, or dark for this run
-    -h, --help      show this help
-    -v, --version   show version
+    -f, --format <fmt>    best (default), 720p / 1080p / …, mp3 / audio,
+                          or any yt-dlp format spec (e.g. "bv*+ba", "140")
+    -a, --batch-file <f>  file with one url per line (# ; ] start comments),
+                          "-" reads from stdin
+    --theme <mode>        use auto, light, or dark for this run
+    -h, --help            show this help
+    -v, --version         show version
 
   Downloads are saved to ~/Downloads.
   Powered by yt-dlp — YouTube, X, Instagram, Threads, TikTok & 1800+ sites.
@@ -46,6 +59,21 @@ if (args.help) {
 if (args.version) {
   console.log(VERSION)
   process.exit(0)
+}
+
+// -f / -a: skip the ui entirely and just download
+if (args.headless) {
+  let urls = args.urls
+  if (args.batchFile !== undefined) {
+    try {
+      urls = [...(await readBatchFile(args.batchFile)), ...urls]
+    } catch (error) {
+      console.error(`yoinks: ${error instanceof Error ? error.message : String(error)}`)
+      process.exit(1)
+    }
+  }
+  const code = await runHeadless({urls, format: args.format, outDir: path.join(os.homedir(), 'Downloads')})
+  process.exit(code)
 }
 
 const initialUrl = args.initialUrl

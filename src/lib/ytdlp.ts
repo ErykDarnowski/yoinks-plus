@@ -160,12 +160,7 @@ export function buildChoices(info: VideoInfo): DownloadChoice[] {
     choices.push({
       kind: 'video',
       label: `${height}p · mp4${sizeLabel}`,
-      args: [
-        '-f',
-        `bv*[height=${height}]+ba/b[height=${height}]/bv*[height<=${height}]+ba/b`,
-        '--merge-output-format',
-        'mp4',
-      ],
+      args: heightArgs(height),
     })
   }
 
@@ -181,10 +176,42 @@ export function buildChoices(info: VideoInfo): DownloadChoice[] {
   choices.push({
     kind: 'audio',
     label: `audio only · mp3${audioSizeLabel}`,
-    args: ['-f', 'ba/b', '-x', '--audio-format', 'mp3', '--audio-quality', '0'],
+    args: AUDIO_ARGS,
   })
 
   return choices
+}
+
+const AUDIO_ARGS = ['-f', 'ba/b', '-x', '--audio-format', 'mp3', '--audio-quality', '0']
+
+/** Selector the picker uses for one resolution: exact height, else the best at or below it. */
+function heightArgs(height: number): string[] {
+  return ['-f', `bv*[height=${height}]+ba/b[height=${height}]/bv*[height<=${height}]+ba/b`, '--merge-output-format', 'mp4']
+}
+
+/**
+ * Turn a --format value into download args without probing first.
+ *   best (default)  best video+audio, merged to mp4
+ *   720p / 1080p    that resolution (or the closest below it), mp4 — the
+ *                   p is required: a bare number is a yt-dlp format id
+ *   mp3 / audio     audio only, extracted to mp3
+ * Anything else is passed to yt-dlp as-is (`-f <spec>`), so every yt-dlp
+ * format selector works, e.g. "bv*[height<=1080]+ba" or "140".
+ */
+export function choiceFromFormat(format: string | undefined): DownloadChoice {
+  const spec = format?.trim()
+  const lower = spec?.toLowerCase()
+  if (!spec || lower === 'best') {
+    return {kind: 'video', label: 'best available · mp4', args: ['-f', 'bv*+ba/b', '--merge-output-format', 'mp4']}
+  }
+  if (lower === 'mp3' || lower === 'audio') {
+    return {kind: 'audio', label: 'audio only · mp3', args: AUDIO_ARGS}
+  }
+  const height = /^(\d{2,4})p$/.exec(lower!)?.[1]
+  if (height) {
+    return {kind: 'video', label: `${height}p · mp4`, args: heightArgs(Number(height))}
+  }
+  return {kind: 'video', label: spec, args: ['-f', spec]}
 }
 
 function scoreVideo(f: RawFormat): number {
