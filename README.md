@@ -2,9 +2,11 @@
 
 > **yoinks+ is a fork of [yoinks](https://github.com/pablostanley/yoinks)**
 > that brings over some of the features from
-> [yt-dlp](https://github.com/yt-dlp/yt-dlp) that the original keeps
-> hidden behind its UI — downloading from a batch file (`-a`), choosing
-> the format up front (`-f`), and a no-UI mode that just downloads.
+> [**yt-dlp**](https://github.com/yt-dlp/yt-dlp) — downloading from a batch
+> file, choosing the format up front, and a no-UI mode that just downloads
+> the given URL.
+
+---
 
 <picture>
   <source media="(prefers-color-scheme: dark)" srcset="assets/logo-dark.svg">
