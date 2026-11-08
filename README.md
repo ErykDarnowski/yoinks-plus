@@ -15,7 +15,8 @@ yoink any video. paste. yoink. done.
 
 Download videos from YouTube, X/Twitter, Instagram, Threads, TikTok and
 1,800+ other sites — right from your terminal. Paste a url, pick a
-resolution (or audio-only mp3), done. No popups, no fake download buttons,
+resolution (or audio-only mp3), done. Or skip the UI: `yoinks <url>` grabs
+the best quality, and `yoinks -a urls.txt` grabs a whole list. No popups, no fake download buttons,
 no sketchy redirects.
 
 <img src="assets/home.png" alt="yoinks home screen — paste a link and hit yoink" width="100%">
@@ -79,7 +80,9 @@ Progress is shown on stderr; each finished file is printed to stdout as
 `✓ yoinked → <path>`. If any url fails the rest still download, and the
 exit code is 1.
 
-yoinks takes over the terminal (full-screen, centered — and restores your
+### The UI
+
+Run bare `yoinks` and it takes over the terminal (full-screen, centered — and restores your
 scrollback on exit). Pick a format with ↑/↓ (or j/k, or number keys) and
 hit enter. `esc` goes back, `^c` quits. Or just use the mouse — the yoink
 button, the format list and the footer hints are all clickable, and
